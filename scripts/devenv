@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "${1}" == "up" ]
+then
+    HERE=$(pwd)
+    WK_DIR=${HERE} docker compose -f ~/Projects/Code/dev-env/docker-compose.devenv.yml up -d --build
+    docker exec -it con-tcook-devenv /bin/bash
+else
+    docker compose -f ~/Projects/Code/dev-env/docker-compose.devenv.yml down
+fi
+

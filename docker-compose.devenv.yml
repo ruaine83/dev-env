@@ -1,8 +1,19 @@
 services:
   devenv:
-    container_name: tcook-devenv
-    image: tcook-devenv:${VERSION_TAG}
-    env_file:
-      - ./Docker/devenv.env
+    image: ${IMAGE_NAME}
+    container_name: ${CONTAINER_NAME}
+    network_mode: "host"
+    stdin_open: true
+    pid: "host"
+    ipc: "host"
+    tty: true
+    volumes:
+      - ${WK_DIR}:/workspace
+    command:
+      - /bin/bash
     build:
-      context: Docker
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE=${BASE_IMAGE}
+        - PLATFORM=${PLATFORM}
+        - APT_LIST=${APT_LIST}
