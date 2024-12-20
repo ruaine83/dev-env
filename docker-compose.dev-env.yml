@@ -1,0 +1,38 @@
+volumes:
+  codebase:
+    driver: nfs
+    labels:
+      - com.local.description: "Codebase Storage"
+      - com.local.owner: "Travis Cook"
+
+services:
+  devenv:
+    image: amd64/tcook-devenv:1.0.0
+    container_name: devenv
+    stdin_open: true
+    tty: true
+    privileged: true
+    cap_add:
+      - SYS_NICE
+      - SYS_ADMIN
+      - NET_ADMIN
+    network_mode: host
+    volumes:
+      - codebase:/workspace
+    devices:
+      - /dev/
+    stop_signal: SIGKILL
+    entrypoint: "./startup.sh"
+    command:
+      - "cd /workspace"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev-env
+      no_cache: false
+      tags:
+        - amd64/tcook-devenv:1.0.0
+      args:
+        - BASE_IMAGE=ubuntu
+        - BASE_VERSION=oracular
+        - ARCH=amd64
+        - PLATFORM=linux/amd64

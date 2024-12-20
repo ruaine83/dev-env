@@ -1,0 +1,67 @@
+ARG BASE_IMAGE=debian
+ARG BASE_VERSION=latest
+ARG PLATFORM="linux/amd64"
+
+FROM --platform=${PLATFORM} ${BASE_IMAGE}:${BASE_VERSION} AS main_image
+
+ARG BASE_IMAGE=debian
+ARG BASE_VERSION=latest
+ARG PLATFORM="linux/amd64"
+ARG BOOST_VER="1_87_0"
+
+ENV BASE_IMAGE=${BASE_IMAGE}
+ENV BASE_VERSION=${BASE_VERSION}
+ENV PLATFORM=${PLATFORM}
+ENV BOOST_VER=${BOOST_VER}
+
+USER root
+
+COPY --chown=root:root ./startup.sh /startup.sh
+
+ADD --chmod=777 ./libraries/*.gz /libraries/
+
+WORKDIR /libraries
+
+RUN chmod +x /startup.sh && \
+    \
+    # Add Docker's official GPG key:
+    apt-get -q update && \
+    apt-get install -y ca-certificates curl && \
+    /bin/bash -c "install -m 0755 -d /etc/apt/keyrings" && \
+    curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    \
+    # Add the Docker repository to Apt sources and install:
+    OS_NAME=$(. /etc/os-release && echo "$VERSION_CODENAME") && \
+    if [[ "${OS_NAME}" == "oracular" ]]; then OS_NAME=jammy; fi;  \
+    mkdir -p /libraries && \
+    echo \
+    deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+    $OS_NAME stable | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get -q update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
+    \
+    # Install Rust
+    \
+    curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y && \
+    \
+    # Install other tools
+    apt-get install -y --install-recommends \
+    net-tools vim \
+    gcc g++ gcc-aarch64-linux-gnu g++-aarch64-linux-gnu g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf gdb gdb-multiarch \
+    make cmake \
+    python3 python3-pip && \
+    apt -y upgrade && \
+    \
+    # Install Boost 
+    echo "Downloading Boost" && \
+    curl -fsSL https://boostorg.jfrog.io/artifactory/main/release/1.87.0/source/boost_${BOOST_VER}.tar.gz -o boos.tar.gz && \
+    gunzip boost.tar.gz && \
+    echo "Unpacking libraries... This may take a little while" && \
+    tar -xf boost.tar && \
+    cd boost && \
+    echo "Installing Boost" && \
+    ./bootstrap.sh
+
+ENTRYPOINT [ "/startup.sh" ]

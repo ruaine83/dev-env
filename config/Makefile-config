@@ -1,0 +1,40 @@
+# Config file for default "make" variables
+
+BASE_IMAGE_NAME ?= debian
+BASE_IMAGE_VERSION ?= trixie-slim
+BASE_IMAGE ?= ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
+
+CURR_VER ?= $(shell cat ./VERSION)
+DOCKER_DIR ?= ./Docker
+
+DOCKER_BUILD_FILE ?= Dockerfile
+DOCKER_COMPOSE_FILE ?= docker-compose.yml
+
+APT_LIST ?= "./scripts/install"
+
+DOCKER_BUILD_FLAGS ?= ""
+DOCKER_BUILD_CONTEXT ?= "."
+
+DOCKER_HUB_LOGIN = ruaine83
+DOCKER_HUB_PASS = diamond1883
+
+OS_TYPE="linux"
+
+ARCH ?= arm64
+ARCH_LIST ?= amd64 arm64
+TYPE ?= ""
+
+ifeq ($(TARGET), arm64)
+   TYPE="/v8"
+endif
+
+PLATFORM=${OS_TYPE}/${ARCH}${TYPE}
+
+# Rust Directories
+RUST_SRC = "src/"
+
+# C/C++ Directories
+C_SRC = ""
+
+# Vanity :)
+MAINT_USER ?= $(shell echo $${USER})
